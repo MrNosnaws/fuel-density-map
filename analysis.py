@@ -88,3 +88,39 @@ def analyze_video_progression(vid_path, start_time=0, end_time=None):
     print(f"Total Frames:" + str(len(frame_counts)))
     cap.release()
     return frame_counts
+
+def analyze_video_total(vid_path, start_time=0, end_time=None):
+    import cv2
+    import numpy as np
+
+    cap = cv2.VideoCapture(vid_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    if end_time is None:
+        end_time = cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps
+
+    start_frame = int(start_time * fps)
+    end_frame = int(end_time * fps)
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    total_map = np.zeros((frame_height, frame_width), dtype=np.uint32)
+
+    frame_count = start_frame
+
+    while frame_count < end_frame:
+        print(f"Processing frame {frame_count}/{end_frame}", end="\r")
+
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        total_map += analyze_frame(frame)
+        frame_count += 1
+
+    cap.release()
+    print()  # newline after progress
+    return total_map

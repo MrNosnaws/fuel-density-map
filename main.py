@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 import analysis
+import multi_match as mm
 import numpy as np
 from PIL import Image
 
@@ -218,7 +219,24 @@ def array_to_video(video_array, output_path, fps=30):
     out.release()
     print("Saved to:", output_path)
 
+def process_multi_match():
+    name = "ns_finals"
+    video_paths = [
+        "videos/north_star_finals/finals_1.mp4",
+        "videos/north_star_finals/finals_2.mp4"
+    ]
+    start_times = [0, 0]
+    end_times = [None, None]
+
+    combined_color_data = mm.get_multi_match_color_data(video_paths, start_times, end_times, average_display_color, pct_from_average_to_max=0.25)
+    output_path = os.path.join("images/" + name, "_multi_match_image.png")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    img = Image.fromarray(combined_color_data, mode="RGB")
+    img.save(output_path)
+    print("Multi-match image saved to:", output_path)
+
 if __name__ == "__main__":
     # raw_data_analysis()
     # process_raw_data()
-    process_into_video_progression()
+    # process_into_video_progression()
+    process_multi_match()
