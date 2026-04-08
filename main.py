@@ -6,12 +6,42 @@ import analysis
 import multi_match as mm
 import numpy as np
 from PIL import Image
+import video_prep as vp
+import settings as st
 
-vid_path = "videos/citrus_bread_wr_blackboxed.mp4"
+vid_path = st.vid_path.split(".")[0] + "_processed.mp4"
 start_time = 0  # in seconds
 end_time = None   # in seconds
-pct_from_average_to_max = 0.5 # how much of the way from the average to the max value should the average color be, as a percentage
-average_display_color = (255, 0, 255) # magenta, easy to see
+pct_from_average_to_max = st.pct_from_average_to_max # how much of the way from the average to the max value should the average color be, as a percentage
+average_display_color = st.average_display_color # magenta, easy to see
+
+def run():
+    if st.doing_single_match:
+        vp.download_video(st.url, st.vid_path.replace(".mp4", ""))
+        vp.prepare_video(
+            input_path=st.vid_path,
+            output_path=st.vid_path.split(".")[0] + "_processed.mp4",
+            start_time=st.true_start_time,
+            end_time=st.true_end_time,
+            cutoff_percent=0.2
+        )
+        raw_data_analysis()
+        process_raw_data()
+        # process_into_video_progression()
+    else:
+        for (vid_path, start_time, end_time) in zip(st.vid_paths, st.true_start_times, st.true_end_times):
+            vp.download_video(st.urls[st.vid_paths.index(vid_path)], vid_path)
+            vp.prepare_video(
+                input_path=vid_path,
+                output_path=vid_path.split("/")[-1].split(".")[0] + "_processed.mp4",
+                start_time=start_time,
+                end_time=end_time,
+                cutoff_percent=0.2
+            )
+        
+        for i in range(len(st.vid_paths)):
+            st.vid_paths[i] = "videos/" + st.vid_paths[i].split("/")[-1].split(".")[0] + "_processed.mp4"
+        process_multi_match()
 
 def raw_data_analysis():
     # Example usage
@@ -220,11 +250,8 @@ def array_to_video(video_array, output_path, fps=30):
     print("Saved to:", output_path)
 
 def process_multi_match():
-    name = "ns_finals"
-    video_paths = [
-        "videos/north_star_finals/finals_1.mp4",
-        "videos/north_star_finals/finals_2.mp4"
-    ]
+    name = st.output_name
+    video_paths = st.vid_paths
     start_times = [0, 0]
     end_times = [None, None]
 
@@ -236,7 +263,15 @@ def process_multi_match():
     print("Multi-match image saved to:", output_path)
 
 if __name__ == "__main__":
+    run()
+    # vp.prepare_video(
+    #     input_path=vid_path,
+    #     output_path="videos/citrus_bread_wr_test.mp4",
+    #     start_time=start_time,
+    #     end_time=end_time,
+    #     cutoff_percent=0.2
+    # )
     # raw_data_analysis()
     # process_raw_data()
     # process_into_video_progression()
-    process_multi_match()
+    # process_multi_match()
